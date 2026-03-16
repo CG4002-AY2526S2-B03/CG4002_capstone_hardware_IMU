@@ -35,13 +35,52 @@ void handleMQTT(void *handler_args, esp_event_base_t base, int32_t event_id, voi
 }
 #endif
 
-std::string formatPayload(float x, float y) {
-  JsonDocument doc;
-  doc["clientID"] = clientID;
-  doc["position"]["x"] = x;
-  doc["position"]["y"] = y;
+std::string formatPayload(const IMU_Data &data, int button = 0) {
+    JsonDocument doc;
+    doc["client-id"] = clientID;
 
-  std::string jsonPayload;
-  serializeJson(doc, jsonPayload);
-  return jsonPayload;
+    doc["position"]["roll"]  = data.position.roll;
+    doc["position"]["pitch"] = data.position.pitch;
+    doc["position"]["yaw"]   = data.position.yaw;
+
+    doc["velocity"]["x"] = data.velocity.x_vel;
+    doc["velocity"]["y"] = data.velocity.y_vel;
+    doc["velocity"]["z"] = data.velocity.z_vel;
+
+    doc["button"] = button;
+
+    std::string jsonPayload;
+    serializeJson(doc, jsonPayload);
+    return jsonPayload;
+}
+
+// IMU packet
+std::string formatImuPayload(const IMU_Data &data) {
+    JsonDocument doc;
+    doc["client-id"] = clientID;
+    doc["type"] = "imu";
+
+    doc["position"]["roll"]  = data.position.roll;
+    doc["position"]["pitch"] = data.position.pitch;
+    doc["position"]["yaw"]   = data.position.yaw;
+
+    doc["velocity"]["x"] = data.velocity.x_vel;
+    doc["velocity"]["y"] = data.velocity.y_vel;
+    doc["velocity"]["z"] = data.velocity.z_vel;
+
+    std::string jsonPayload;
+    serializeJson(doc, jsonPayload);
+    return jsonPayload;
+}
+
+// Button packet
+std::string formatButtonPayload(int buttonState) {
+    JsonDocument doc;
+    doc["client-id"] = clientID;
+    doc["type"] = "button";
+    doc["button"] = buttonState;
+
+    std::string jsonPayload;
+    serializeJson(doc, jsonPayload);
+    return jsonPayload;
 }

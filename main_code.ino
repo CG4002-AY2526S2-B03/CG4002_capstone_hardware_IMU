@@ -33,21 +33,22 @@ volatile int buttonPressed = -1;
 QueueHandle_t imuQueue;
 QueueHandle_t buttonQueue;
 
+// NOTE: moved these structs to Mqtt.h
 // ---------- DATA STRUCTURES ----------
-struct Position {
-  float pitch;
-  float yaw;
-  float roll;
-};
-struct Velocity {
-  float x_vel;
-  float y_vel;
-  float z_vel;
-};
-struct IMU_Data {
-  struct Position position;
-  struct Velocity velocity;
-};
+// struct Position {
+//   float pitch;
+//   float yaw;
+//   float roll;
+// };
+// struct Velocity {
+//   float x_vel;
+//   float y_vel;
+//   float z_vel;
+// };
+// struct IMU_Data {
+//   struct Position position;
+//   struct Velocity velocity;
+// };
 
 // ---------- TASK HANDLES -------------
 TaskHandle_t imuTaskHandle = NULL;
@@ -89,17 +90,17 @@ void mqttTask(void *pvParameters) {
       Serial.print(", ");
       Serial.println(data.velocity.z_vel);
 
-      // if (mqttClient.isConnected()) {
-      //     std::string payload = formatPayload(data);
-      //     mqttClient.publish(playerEspPublishTopic, payload, 0, false);
-      // }
+      if (mqttClient.isConnected()) {
+        std::string payload = formatImuPayload(data);
+        mqttClient.publish(paddleEspPublishTopic, payload, 0, false);
+      }
     }
 
     if (xQueueReceive(buttonQueue, &buttonEvent, 0) == pdTRUE) {
-      // if (mqttClient.isConnected()) {
-      //     std::string payload = formatPayload(pos);
-      //     mqttClient.publish(playerEspPublishTopic, payload, 0, false);
-      // }
+      if (mqttClient.isConnected()) {
+        std::string payload = formatButtonPayload(buttonEvent + 1);
+        mqttClient.publish(paddleEspPublishTopic, payload, 0, false);
+      }
       Serial.print("Button ");
       Serial.print(buttonEvent + 1);
       Serial.println(" pressed");
@@ -276,6 +277,36 @@ void setup() {
 }
 
 void loop() {
+  // if (WiFi.status() != WL_CONNECTED) {
+  //   wifiConnect();
+  // }
+
+  // if (mqttClient.isConnected()) {
+  //   // Test IMU packet
+  //   IMU_Data testData;
+  //   testData.position.pitch = 1.1;
+  //   testData.position.yaw   = 2.2;
+  //   testData.position.roll  = 3.3;
+  //   testData.velocity.x_vel = 0.5;
+  //   testData.velocity.y_vel = 0.6;
+  //   testData.velocity.z_vel = 0.7;
+
+  //   std::string imuPayload = formatImuPayload(testData);
+  //   mqttClient.publish(paddleEspPublishTopic, imuPayload, 0, false);
+  //   Serial.printf("[TEST] Published IMU: %s\n", imuPayload.c_str());
+
+  //   delay(2000);
+
+  //   // Test button packet
+  //   std::string buttonPayload = formatButtonPayload(1);
+  //   mqttClient.publish(paddleEspPublishTopic, buttonPayload, 0, false);
+  //   Serial.printf("[TEST] Published Button: %s\n", buttonPayload.c_str());
+
+  // } else {
+  //   Serial.println("[TEST] MQTT not connected...");
+  // }
+
+  // delay(3000);
 }
 
 /* ---------------------------------------------------------------------------------- */

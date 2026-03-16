@@ -1,9 +1,8 @@
 // Includes
-#include <LSM6DSRSensor.h>
+#include "LSM6DSRSensor.h"
 #include "MahonyAHRS.h"
-#include <WiFi.h>
-#include <ArduinoJson.h>
-#include "ESP32MQTTClient.h"
+#include "Mqtt.h"
+#include "config.h"
 
 #define DEBUG  // Enable debug output
 
@@ -24,17 +23,10 @@ const float imu_pos[3] = { 0.0, -0.10, 0.0 };  // IMU position relative to racke
 #define DRIFT_DECAY 0.995                      // Dright decay (HPF) - reduces integration drift for velocity calculation
 #define DEBOUNCE_DELAY 200
 
-const char *ssid = "BEL 7462";
-const char *password = "9*9V7p68";
-const char *mqtt_broker = "172.20.10.11";
-const char *clientID = "esp32-player-client";
-const std::string playerEspPublishTopic = "/playerPosition";
-
 // --------- GLOBAL VARIABLES ----------
 #define SerialPort Serial
 LSM6DSRSensor AccGyr(&Wire, LSM6DSR_I2C_ADD_L);
 Mahony filter;
-ESP32MQTTClient mqttClient;
 volatile int buttonPressed = -1;
 
 // ----------- QUEUE HANDLES -----------
@@ -233,6 +225,18 @@ void setup() {
   // Queues
   imuQueue = xQueueCreate(10, sizeof(IMU_Data));
   buttonQueue   = xQueueCreate(10, sizeof(int));
+
+  // ===== HANDLE MQTT =====
+  wifiConnect();
+  mqttClient.setMqttClientName(clientID);
+  mqttClient.enableLastWillMessage("/will", "esp32-client-player went offline", false);
+  
+  String mqttBrokerURL = String(mqtt_broker);
+  mqttClient.setURL(mqttBrokerURL.c_str(), 8883, "", "");
+  mqttClient.setCaCert(caCert);
+  mqttClient.setClientCert(clientCert);
+  mqttClient.setKey(clientKey);
+  mqttClient.loopStart();
 
   // ===== CREATE TASKS =====
   xTaskCreatePinnedToCore(

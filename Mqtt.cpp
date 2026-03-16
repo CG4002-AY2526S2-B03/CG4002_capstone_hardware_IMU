@@ -5,16 +5,16 @@ ESP32MQTTClient mqttClient;
 void wifiConnect() {
   WiFi.begin(ssid, password);
   while (WiFi.status() != WL_CONNECTED) {
-    Serial.println("[ESP32-PLAYER] Attempting network connection.");
+    Serial.println("[ESP32-PADDLE] Attempting network connection.");
     delay(500);
   }
-  Serial.println("[ESP32-PLAYER] Connection to network successful.");
+  Serial.println("[ESP32-PADDLE] Connection to network successful.");
 }
 
 void onMqttConnect(esp_mqtt_client_handle_t client) {
   if (mqttClient.isMyTurn(client)) {
-    mqttClient.subscribe(playerEspSubscribeTopic, [](const std::string &payload) {
-      Serial.printf("[%s] Received: %s\n", playerEspSubscribeTopic.c_str(), payload.c_str());
+    mqttClient.subscribe(paddleEspSubscribeTopic, [](const std::string &payload) {
+      Serial.printf("[%s] Received: %s\n", paddleEspSubscribeTopic.c_str(), payload.c_str());
     });
   }
 }

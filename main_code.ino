@@ -229,7 +229,7 @@ void setup() {
   // ===== HANDLE MQTT =====
   wifiConnect();
   mqttClient.setMqttClientName(clientID);
-  mqttClient.enableLastWillMessage("/will", "esp32-client-player went offline", false);
+  mqttClient.enableLastWillMessage("/will", "esp32-client-paddle went offline", false);
   
   String mqttBrokerURL = String(mqtt_broker);
   mqttClient.setURL(mqttBrokerURL.c_str(), 8883, "", "");

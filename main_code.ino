@@ -33,23 +33,6 @@ volatile int buttonPressed = -1;
 QueueHandle_t imuQueue;
 QueueHandle_t buttonQueue;
 
-// NOTE: moved these structs to Mqtt.h
-// ---------- DATA STRUCTURES ----------
-// struct Position {
-//   float pitch;
-//   float yaw;
-//   float roll;
-// };
-// struct Velocity {
-//   float x_vel;
-//   float y_vel;
-//   float z_vel;
-// };
-// struct IMU_Data {
-//   struct Position position;
-//   struct Velocity velocity;
-// };
-
 // ---------- TASK HANDLES -------------
 TaskHandle_t imuTaskHandle = NULL;
 TaskHandle_t buttonTaskHandle = NULL;

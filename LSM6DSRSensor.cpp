@@ -141,14 +141,16 @@ LSM6DSRStatusTypeDef LSM6DSRSensor::begin()
     return LSM6DSR_ERROR;
   }
 
-  if (lsm6dsr_enable_int2_drdy(&reg_ctx) != LSM6DSR_OK) { // enable interrupt 2 for gyro data ready
+  if (lsm6dsr_enable_int1_drdy(&reg_ctx) != LSM6DSR_OK) { // enable interrupt 1 for gyro data ready
     return LSM6DSR_ERROR;
   }
 
+  // Change the values of lpf2_xl_en in reg CTRL1_XL
   if (lsm6dsr_xl_filter_lp2_set(&reg_ctx, 1) != LSM6DSR_OK) { // choose LP2 filter output
     return LSM6DSR_ERROR;
   }
 
+  // Change the values of hp_slope_xl_en in reg CTRL8_XL
   if (lsm6dsr_xl_hp_path_on_out_set(&reg_ctx, LSM6DSR_LP_ODR_DIV_45) != LSM6DSR_OK) { // set LP2 value to ODR/45 --> 18.5Hz at 833Hz
     return LSM6DSR_ERROR;
   }

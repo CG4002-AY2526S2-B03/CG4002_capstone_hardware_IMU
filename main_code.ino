@@ -35,26 +35,30 @@ void IRAM_ATTR handleButton3();
 void mqttTask(void *pvParameters) {
   IMU_Data data;
   int buttonEvent;
-
+  static int counter = 0;
   static unsigned long lastPressTime;
 
   while (true) {
     // ---- IMU ----
     if (xQueueReceive(imuQueue, &data, 0) == pdTRUE) {
-      Serial.print("Orientation: ");
-      Serial.print(data.position.pitch);
-      Serial.print(", ");
-      Serial.print(data.position.yaw);
-      Serial.print(", ");
-      Serial.println(data.position.roll);
+      counter ++; 
+      if (counter > 50) {
+        Serial.print("Orientation: ");
+        Serial.print(data.position.pitch);
+        Serial.print(", ");
+        Serial.print(data.position.roll);
+        Serial.print(", ");
+        Serial.println(data.position.yaw);
 
-      Serial.print("Velocity: ");
-      Serial.print(data.velocity.x_vel);
-      Serial.print(", ");
-      Serial.print(data.velocity.y_vel);
-      Serial.print(", ");
-      Serial.println(data.velocity.z_vel);
-
+        Serial.print("Velocity: ");
+        Serial.print(data.velocity.x_vel);
+        Serial.print(", ");
+        Serial.print(data.velocity.y_vel);
+        Serial.print(", ");
+        Serial.println(data.velocity.z_vel);
+        counter = 0;
+      }
+      
       if (mqttClient.isConnected()) {
         std::string payload = formatImuPayload(data);
         mqttClient.publish(paddleEspPublishTopic, payload, 0, false);

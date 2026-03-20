@@ -14,7 +14,7 @@ void wifiConnect() {
 void onMqttConnect(esp_mqtt_client_handle_t client) {
   if (mqttClient.isMyTurn(client)) {
     for (const auto& topic : paddleEspSubscribeTopics) {
-      mqttClient.subscribe(topic, [](const std::string &payload) {
+      mqttClient.subscribe(topic, [topic](const std::string &payload) {
         Serial.printf("[%s] Received: %s\n", topic.c_str(), payload.c_str());
       });
       }

@@ -17,6 +17,7 @@ const int buttonPins[4] = { 25, 26, 27, 13 };
 #define SerialPort Serial
 LSM6DSRSensor AccGyr(&Wire, LSM6DSR_I2C_ADD_L);
 Mahony filter;
+bool hasGameStarted = false;
 
 // ----------- QUEUE HANDLES -----------
 QueueHandle_t imuQueue;
@@ -55,7 +56,7 @@ void mqttTask(void *pvParameters) {
       Serial.print(", ");
       Serial.println(data.velocity.z_vel);
 
-      if (mqttClient.isConnected()) {
+      if (mqttClient.isConnected() && hasGameStarted) {
         std::string payload = formatImuPayload(data);
         mqttClient.publish(paddleEspPublishTopic, payload, 0, false);
       }
@@ -68,7 +69,7 @@ void mqttTask(void *pvParameters) {
       if (now - lastPressTime > DEBOUNCE_DELAY) {
         lastPressTime = now;
 
-        if (mqttClient.isConnected()) {
+        if (mqttClient.isConnected() && hasGameStarted) {
           std::string payload = formatButtonPayload(buttonEvent + 1);
           mqttClient.publish(paddleEspPublishTopic, payload, 0, false);
         }

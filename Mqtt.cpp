@@ -9,6 +9,9 @@ void wifiConnect() {
     delay(500);
   }
   Serial.println("[ESP32-PADDLE] Connection to network successful.");
+
+  Serial.print("ESP32 IP: ");
+  Serial.println(WiFi.localIP());  // add this
 }
 
 void onMqttConnect(esp_mqtt_client_handle_t client) {
@@ -29,6 +32,7 @@ void onMqttConnect(esp_mqtt_client_handle_t client) {
       });
     }
     
+    hasGameStarted = true;
     // publish READY to system-coordinator
     mqttClient.publish("/status/esp32-paddle-client", "READY", 1, false);
     Serial.println("[SYSTEM] Published READY");

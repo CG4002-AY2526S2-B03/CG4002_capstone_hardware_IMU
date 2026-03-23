@@ -42,19 +42,19 @@ void mqttTask(void *pvParameters) {
   while (true) {
     // ---- IMU ----
     if (xQueueReceive(imuQueue, &data, 0) == pdTRUE) {
-      Serial.print("Orientation: ");
-      Serial.print(data.position.pitch);
-      Serial.print(", ");
-      Serial.print(data.position.yaw);
-      Serial.print(", ");
-      Serial.println(data.position.roll);
+      // Serial.print("Orientation: ");
+      // Serial.print(data.position.pitch);
+      // Serial.print(", ");
+      // Serial.print(data.position.yaw);
+      // Serial.print(", ");
+      // Serial.println(data.position.roll);
 
-      Serial.print("Velocity: ");
-      Serial.print(data.velocity.x_vel);
-      Serial.print(", ");
-      Serial.print(data.velocity.y_vel);
-      Serial.print(", ");
-      Serial.println(data.velocity.z_vel);
+      // Serial.print("Velocity: ");
+      // Serial.print(data.velocity.x_vel);
+      // Serial.print(", ");
+      // Serial.print(data.velocity.y_vel);
+      // Serial.print(", ");
+      // Serial.println(data.velocity.z_vel);
 
       if (mqttClient.isConnected() && hasGameStarted) {
         std::string payload = formatImuPayload(data);
@@ -161,13 +161,17 @@ void setup() {
   wifiConnect();
   mqttClient.setMqttClientName(clientID);
   mqttClient.enableLastWillMessage("/will", "esp32-client-paddle went offline", false);
-  
+
   String mqttBrokerURL = String(mqtt_broker);
-  mqttClient.setURL(mqttBrokerURL.c_str(), 8883, "", "");
-  mqttClient.setCaCert(caCert);
-  mqttClient.setClientCert(clientCert);
-  mqttClient.setKey(clientKey);
+  mqttClient.setURL(mqttBrokerURL.c_str(), 1883, "", "");
   mqttClient.loopStart();
+
+  // String mqttBrokerURL = String(mqtt_broker);
+  // mqttClient.setURL(mqttBrokerURL.c_str(), 8883, "", "");
+  // mqttClient.setCaCert(caCert);
+  // mqttClient.setClientCert(clientCert);
+  // mqttClient.setKey(clientKey);
+  // mqttClient.loopStart();
 
   // ===== CREATE TASKS =====
   xTaskCreatePinnedToCore(imuTask, "IMU Task", 8192, NULL, 2, &imuTaskHandle, 1);
@@ -192,36 +196,36 @@ void setup() {
 }
 
 void loop() {
-  // if (WiFi.status() != WL_CONNECTED) {
-  //   wifiConnect();
-  // }
+  if (WiFi.status() != WL_CONNECTED) {
+    wifiConnect();
+  }
 
-  // if (mqttClient.isConnected()) {
-  //   // Test IMU packet
-  //   IMU_Data testData;
-  //   testData.position.pitch = 1.1;
-  //   testData.position.yaw   = 2.2;
-  //   testData.position.roll  = 3.3;
-  //   testData.velocity.x_vel = 0.5;
-  //   testData.velocity.y_vel = 0.6;
-  //   testData.velocity.z_vel = 0.7;
+  if (mqttClient.isConnected()) {
+    // Test IMU packet
+    IMU_Data testData;
+    testData.position.pitch = 1.1;
+    testData.position.yaw   = 2.2;
+    testData.position.roll  = 3.3;
+    testData.velocity.x_vel = 0.5;
+    testData.velocity.y_vel = 0.6;
+    testData.velocity.z_vel = 0.7;
 
-  //   std::string imuPayload = formatImuPayload(testData);
-  //   mqttClient.publish(paddleEspPublishTopic, imuPayload, 0, false);
-  //   Serial.printf("[TEST] Published IMU: %s\n", imuPayload.c_str());
+    std::string imuPayload = formatImuPayload(testData);
+    mqttClient.publish(paddleEspPublishTopic, imuPayload, 0, false);
+    Serial.printf("[TEST] Published IMU: %s\n", imuPayload.c_str());
 
-  //   delay(2000);
+    delay(2000);
 
-  //   // Test button packet
-  //   std::string buttonPayload = formatButtonPayload(1);
-  //   mqttClient.publish(paddleEspPublishTopic, buttonPayload, 0, false);
-  //   Serial.printf("[TEST] Published Button: %s\n", buttonPayload.c_str());
+    // Test button packet
+    std::string buttonPayload = formatButtonPayload(1);
+    mqttClient.publish(paddleEspPublishTopic, buttonPayload, 0, false);
+    Serial.printf("[TEST] Published Button: %s\n", buttonPayload.c_str());
 
-  // } else {
-  //   Serial.println("[TEST] MQTT not connected...");
-  // }
+  } else {
+    Serial.println("[TEST] MQTT not connected...");
+  }
 
-  // delay(3000);
+  delay(3000);
 }
 
 /* ---------------------------------------------------------------------------------- */

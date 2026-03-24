@@ -99,7 +99,7 @@ void imuTask(void *pvParameters) {
 
   while (true) {
     // wait for IMU interrupt
-    ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
+    // ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
 
     // ============ 1. READ IMU DATA ============
     AccGyr.Get_X_Axes(accel_raw);

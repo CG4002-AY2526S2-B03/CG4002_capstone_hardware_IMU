@@ -141,7 +141,7 @@ LSM6DSRStatusTypeDef LSM6DSRSensor::begin()
     return LSM6DSR_ERROR;
   }
 
-  if (lsm6dsr_enable_int2_drdy(&reg_ctx) != LSM6DSR_OK) { // enable interrupt 2 for gyro data ready
+  if (lsm6dsr_enable_int1_drdy(&reg_ctx) != LSM6DSR_OK) { // enable interrupt 1 for gyro data ready
     return LSM6DSR_ERROR;
   }
 

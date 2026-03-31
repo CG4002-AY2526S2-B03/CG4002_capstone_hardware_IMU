@@ -27,6 +27,17 @@ void onMqttConnect(esp_mqtt_client_handle_t client) {
           }          
         }
       });
+
+      // @ claribell here are the receiving functions for calibration and motor 
+      // if (receivedMessage == "CALIBRATE_YAW") {
+      //   bool trigger = true;
+      //   xQueueSend(calibrationQueue, &trigger, 0);
+      // }
+
+      // if (receivedMessage == "VIBRATE") {
+      //   bool trigger = true;
+      //   xQueueSend(motorQueue, &trigger, 0);
+      // }
     }
     
     // publish READY to system-coordinator

@@ -17,27 +17,28 @@ void onMqttConnect(esp_mqtt_client_handle_t client) {
       mqttClient.subscribe(topic, [topic](const std::string &payload) {
         Serial.printf("[%s] Received: %s\n", topic.c_str(), payload.c_str());
 
-        if (topic == "/system/signal") {
-          if (payload == "START") {
-            Serial.println("[SYSTEM] Game started.");
-            hasGameStarted = true;
-          } else if (payload == "STOP") {
-            Serial.println("[SYSTEM] Game ended.");
-            hasGameStarted = false;
-          }          
+        switch (topic) {
+          case "/system/signal":
+            if (payload == "START") {
+              Serial.println("[SYSTEM] Game started.");
+              hasGameStarted = true;
+            } else if (payload == "STOP") {
+              Serial.println("[SYSTEM] Game ended.");
+              hasGameStarted = false;
+            }
+            break;
+          
+          case "/paddleCalibration":
+            bool trigger = true;
+            xQueueSend(calibrationQueue, &trigger, 0);
+            break;
+          
+          case "/hitAck":
+            bool trigger = true;
+            xQueueSend(motorQueue, &trigger, 0);
+            break;
         }
       });
-
-      // @ claribell here are the receiving functions for calibration and motor 
-      // if (receivedMessage == "CALIBRATE_YAW") {
-      //   bool trigger = true;
-      //   xQueueSend(calibrationQueue, &trigger, 0);
-      // }
-
-      // if (receivedMessage == "VIBRATE") {
-      //   bool trigger = true;
-      //   xQueueSend(motorQueue, &trigger, 0);
-      // }
     }
     
     // publish READY to system-coordinator

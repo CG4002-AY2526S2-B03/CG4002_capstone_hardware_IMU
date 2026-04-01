@@ -229,36 +229,6 @@ void setup() {
 }
 
 void loop() {
-  // if (WiFi.status() != WL_CONNECTED) {
-  //   wifiConnect();
-  // }
-
-  // if (mqttClient.isConnected()) {
-  //   // Test IMU packet
-  //   IMU_Data testData;
-  //   testData.position.pitch = 1.1;
-  //   testData.position.yaw   = 2.2;
-  //   testData.position.roll  = 3.3;
-  //   testData.velocity.x_vel = 0.5;
-  //   testData.velocity.y_vel = 0.6;
-  //   testData.velocity.z_vel = 0.7;
-
-  //   std::string imuPayload = formatImuPayload(testData);
-  //   mqttClient.publish(paddleEspPublishTopic, imuPayload, 0, false);
-  //   Serial.printf("[TEST] Published IMU: %s\n", imuPayload.c_str());
-
-  //   delay(2000);
-
-  //   // Test button packet
-  //   std::string buttonPayload = formatButtonPayload(1);
-  //   mqttClient.publish(paddleEspPublishTopic, buttonPayload, 0, false);
-  //   Serial.printf("[TEST] Published Button: %s\n", buttonPayload.c_str());
-
-  // } else {
-  //   Serial.println("[TEST] MQTT not connected...");
-  // }
-
-  // delay(3000);
 }
 
 /* ---------------------------------------------------------------------------------- */

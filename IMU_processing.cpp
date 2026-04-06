@@ -3,7 +3,7 @@
 
 // ------------ CONSTANTS ------------
 const float accel_bias[3] = { 9.625, -14.477, 13.271 };   // from Magneto
-const float gyro_bias[3] = { 232.28, -536.55, -255.03 };  // from calibration code
+const float gyro_bias[3] = { 27.43, -170.24, -285.68 };  // from calibration code
 const float accel_correction[3][3] = {                    // A⁻¹ (correction matrix) from Magneto
   { 1.015291, 0.001008, 0.001879 },
   { 0.001008, 1.009009, 0.004430 },

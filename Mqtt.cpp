@@ -17,8 +17,7 @@ void onMqttConnect(esp_mqtt_client_handle_t client) {
       mqttClient.subscribe(topic, [topic](const std::string &payload) {
         Serial.printf("[%s] Received: %s\n", topic.c_str(), payload.c_str());
 
-        switch (topic) {
-          case "/system/signal":
+        if (topic == "/system/signal") {
             if (payload == "START") {
               Serial.println("[SYSTEM] Game started.");
               hasGameStarted = true;
@@ -26,17 +25,12 @@ void onMqttConnect(esp_mqtt_client_handle_t client) {
               Serial.println("[SYSTEM] Game ended.");
               hasGameStarted = false;
             }
-            break;
-          
-          case "/paddleCalibration":
+        } else if (topic == "/paddleCalibration") {
             bool trigger = true;
             xQueueSend(calibrationQueue, &trigger, 0);
-            break;
-          
-          case "/hitAck":
+        } else if (topic == "/hitAck") {
             bool trigger = true;
             xQueueSend(motorQueue, &trigger, 0);
-            break;
         }
       });
     }

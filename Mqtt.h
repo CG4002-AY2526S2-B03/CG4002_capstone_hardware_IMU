@@ -7,6 +7,8 @@
 
 extern ESP32MQTTClient mqttClient;
 extern bool hasGameStarted;
+extern QueueHandle_t calibrationQueue;
+extern QueueHandle_t motorQueue;
 
 struct Position {
   float pitch;

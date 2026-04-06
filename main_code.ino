@@ -20,7 +20,7 @@ const int buttonPins[4] = { 25, 26, 27, 13 };
 #define SerialPort Serial
 LSM6DSRSensor AccGyr(&Wire, LSM6DSR_I2C_ADD_L);
 Mahony filter;
-bool hasGameStarted = false;
+bool hasGameStarted = true;
 
 // ----------- QUEUE HANDLES -----------
 QueueHandle_t imuQueue;
@@ -197,12 +197,15 @@ void setup() {
   wifiConnect();
   mqttClient.setMqttClientName(clientID);
   mqttClient.enableLastWillMessage("/will", "esp32-client-paddle went offline", false);
-  
+
   String mqttBrokerURL = String(mqtt_broker);
-  mqttClient.setURL(mqttBrokerURL.c_str(), 8883, "", "");
-  mqttClient.setCaCert(caCert);
-  mqttClient.setClientCert(clientCert);
-  mqttClient.setKey(clientKey);
+  mqttClient.setURL(mqttBrokerURL.c_str(), 1883, "", "");
+
+  // String mqttBrokerURL = String(mqtt_broker);
+  // mqttClient.setURL(mqttBrokerURL.c_str(), 8883, "", "");
+  // mqttClient.setCaCert(caCert);
+  // mqttClient.setClientCert(clientCert);
+  // mqttClient.setKey(clientKey);
   mqttClient.loopStart();
 
   // ===== CREATE TASKS =====

@@ -86,12 +86,12 @@ void computeRacketVelocity(float q0, float q1, float q2, float q3,
   v_world[2] = v_world[2] * DRIFT_DECAY + a_world[2] * dt;
 
   // Zero velocity detection
-  float accel_mag = sqrtf(accel[0] * accel[0] + accel[1] * accel[1] + accel[2] * accel[2]);
-  if (fabs(accel_mag - 1.0f) < 0.05f) {  // Within 0.05g of 1g = stationary
-    v_world[0] *= 0.5f;
-    v_world[1] *= 0.5f;
-    v_world[2] *= 0.5f;
-  }
+  // float accel_mag = sqrtf(accel[0] * accel[0] + accel[1] * accel[1] + accel[2] * accel[2]);
+  // if (fabs(accel_mag - 1.0f) < 0.05f) {  // Within 0.05g of 1g = stationary
+  //   v_world[0] *= 0.5f;
+  //   v_world[1] *= 0.5f;
+  //   v_world[2] *= 0.5f;
+  // }
 
   // --- Step 5: Lever arm effect (body frame) ---
   // v_rot = ω × r (using rad/s)

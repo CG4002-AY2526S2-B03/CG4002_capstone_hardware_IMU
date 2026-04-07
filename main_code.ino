@@ -5,7 +5,7 @@
 #include "config.h"
 #include "IMU_processing.h"
 
-#define DEBUG // enables print statements for debugging 
+// #define DEBUG // enables print statements for debugging 
 
 // -------- PIN CONFIGURATIONS -------
 #define IMU_INT_PIN 14
@@ -14,7 +14,7 @@ const int buttonPins[4] = { 25, 26, 27, 13 };
 
 // ------------ CONSTANTS ------------
 #define DEBOUNCE_DELAY 200
-#define VIBRATION_TIME 50
+#define VIBRATION_TIME 500
 
 // --------- GLOBAL VARIABLES ----------
 #define SerialPort Serial
@@ -95,12 +95,15 @@ void motorTask(void *pvParameters) {
 
   while (true) {
     if (xQueueReceive(motorQueue, &trigger, portMAX_DELAY)) {
+      Serial.println("motor");
       digitalWrite(NMOS_GATE_PIN, HIGH);  // Turn motor ON
 
       // Non-blocking delay using RTOS
       vTaskDelay(VIBRATION_TIME / portTICK_PERIOD_MS);
 
       digitalWrite(NMOS_GATE_PIN, LOW); // Turn motor OFF
+      Serial.println("motor done");
+      
     }
   }
 }
@@ -191,7 +194,7 @@ void setup() {
   imuQueue = xQueueCreate(10, sizeof(IMU_Data));
   buttonQueue = xQueueCreate(10, sizeof(int));
   calibrationQueue = xQueueCreate(1, sizeof(bool));
-  motorQueue = xQueueCreate(1, sizeof(int));
+  motorQueue = xQueueCreate(1, sizeof(bool));
 
   // ===== HANDLE MQTT =====
   wifiConnect();

@@ -122,3 +122,11 @@ float getDT() {
   if (dt > 0.1) dt = 0.01;  // Prevent spikes after pause
   return dt;
 }
+
+void reinitIMU() {
+    if (AccGyr.begin() != LSM6DSR_OK) {
+    Serial.println("error!!");
+  }
+  AccGyr.Enable_X();
+  AccGyr.Enable_G();
+}

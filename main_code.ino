@@ -6,6 +6,7 @@
 #include "IMU_processing.h"
 
 // #define DEBUG // enables print statements for debugging 
+#define IMU_NOTIFY_TIMEOUT_MS 500   // 500 ms timeout
 
 // -------- PIN CONFIGURATIONS -------
 #define IMU_INT_PIN 14
@@ -47,7 +48,7 @@ void mqttTask(void *pvParameters) {
   while (true) {
     // ---- IMU ----
     if (xQueueReceive(imuQueue, &data, 0) == pdTRUE) {
-      #ifdef DEBUG
+      // #ifdef DEBUG
       Serial.print("Orientation: ");
       Serial.print(data.position.pitch);
       Serial.print(", ");
@@ -55,13 +56,13 @@ void mqttTask(void *pvParameters) {
       Serial.print(", ");
       Serial.println(data.position.roll);
 
-      Serial.print("Velocity: ");
-      Serial.print(data.velocity.x_vel);
-      Serial.print(", ");
-      Serial.print(data.velocity.y_vel);
-      Serial.print(", ");
-      Serial.println(data.velocity.z_vel);
-      #endif
+      // Serial.print("Velocity: ");
+      // Serial.print(data.velocity.x_vel);
+      // Serial.print(", ");
+      // Serial.print(data.velocity.y_vel);
+      // Serial.print(", ");
+      // Serial.println(data.velocity.z_vel);
+      // #endif
 
       if (mqttClient.isConnected() && hasGameStarted) {
         std::string payload = formatImuPayload(data);
@@ -95,15 +96,12 @@ void motorTask(void *pvParameters) {
 
   while (true) {
     if (xQueueReceive(motorQueue, &trigger, portMAX_DELAY)) {
-      Serial.println("motor");
       digitalWrite(NMOS_GATE_PIN, HIGH);  // Turn motor ON
 
       // Non-blocking delay using RTOS
       vTaskDelay(VIBRATION_TIME / portTICK_PERIOD_MS);
 
       digitalWrite(NMOS_GATE_PIN, LOW); // Turn motor OFF
-      Serial.println("motor done");
-      
     }
   }
 }
@@ -120,6 +118,10 @@ void imuTask(void *pvParameters) {
   float yaw_offset = 0.0f;
   bool calibrateRequest = false;
 
+    // --- timeout settings ---
+  const uint32_t imuTimeoutUs = 5000;  // 5ms timeout (adjust to your IMU ODR)
+  uint32_t lastIMUReadTime = micros();
+
   while (true) {
 
     // Check if calibration requested
@@ -129,10 +131,18 @@ void imuTask(void *pvParameters) {
         Serial.println("[IMU] Yaw calibrated!");
     #endif
     }
-
+    Serial.println("1");
     // wait for IMU interrupt
-    ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
+    BaseType_t notified = ulTaskNotifyTake(pdTRUE, pdMS_TO_TICKS(IMU_NOTIFY_TIMEOUT_MS));
 
+    if (notified == 0) {
+      // Timeout expired → IMU did not respond
+      Serial.println("[IMU] Timeout! Reinitializing...");
+      reinitIMU();
+      continue; // skip this iteration
+    }
+    Serial.println("2");
+    
     // ============ 1. READ IMU DATA ============
     AccGyr.Get_X_Axes(accel_raw);
     AccGyr.Get_G_Axes(gyro_raw);
@@ -184,11 +194,7 @@ void setup() {
   Wire.begin();
   Wire.setClock(400000);  // 400kHz
 
-  if (AccGyr.begin() != LSM6DSR_OK) {
-    Serial.println("error!!");
-  }
-  AccGyr.Enable_X();
-  AccGyr.Enable_G();
+  reinitIMU();
 
   // Queues
   imuQueue = xQueueCreate(10, sizeof(IMU_Data));
@@ -201,14 +207,14 @@ void setup() {
   mqttClient.setMqttClientName(clientID);
   mqttClient.enableLastWillMessage("/will", "esp32-client-paddle went offline", false);
 
-  // String mqttBrokerURL = String(mqtt_broker);
-  // mqttClient.setURL(mqttBrokerURL.c_str(), 1883, "", "");
-
   String mqttBrokerURL = String(mqtt_broker);
-  mqttClient.setURL(mqttBrokerURL.c_str(), 8883, "", "");
-  mqttClient.setCaCert(caCert);
-  mqttClient.setClientCert(clientCert);
-  mqttClient.setKey(clientKey);
+  mqttClient.setURL(mqttBrokerURL.c_str(), 1883, "", "");
+
+  // String mqttBrokerURL = String(mqtt_broker);
+  // mqttClient.setURL(mqttBrokerURL.c_str(), 8883, "", "");
+  // mqttClient.setCaCert(caCert);
+  // mqttClient.setClientCert(clientCert);
+  // mqttClient.setKey(clientKey);
   mqttClient.loopStart();
 
   // ===== CREATE TASKS =====

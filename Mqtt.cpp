@@ -31,7 +31,7 @@ void onMqttConnect(esp_mqtt_client_handle_t client) {
         } else if (topic == "/hitAck") {
             bool trigger = true;
             xQueueSend(motorQueue, &trigger, 0);
-            Serial.println("[MQTT] motor");
+            // Serial.println("[MQTT] motor");
 
         }
       });

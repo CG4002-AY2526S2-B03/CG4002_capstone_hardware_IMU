@@ -49,19 +49,19 @@ void mqttTask(void *pvParameters) {
     // ---- IMU ----
     if (xQueueReceive(imuQueue, &data, 0) == pdTRUE) {
       // #ifdef DEBUG
-      Serial.print("Orientation: ");
-      Serial.print(data.position.pitch);
-      Serial.print(", ");
-      Serial.print(data.position.yaw);
-      Serial.print(", ");
-      Serial.println(data.position.roll);
+      // Serial.print("Orientation: ");
+      // Serial.print(data.position.pitch);
+      // Serial.print(", ");
+      // Serial.print(data.position.yaw);
+      // Serial.print(", ");
+      // Serial.println(data.position.roll);
 
-      // Serial.print("Velocity: ");
-      // Serial.print(data.velocity.x_vel);
-      // Serial.print(", ");
-      // Serial.print(data.velocity.y_vel);
-      // Serial.print(", ");
-      // Serial.println(data.velocity.z_vel);
+      Serial.print("Velocity: ");
+      Serial.print(data.velocity.x_vel);
+      Serial.print(", ");
+      Serial.print(data.velocity.y_vel);
+      Serial.print(", ");
+      Serial.println(data.velocity.z_vel);
       // #endif
 
       if (mqttClient.isConnected() && hasGameStarted) {
@@ -131,17 +131,18 @@ void imuTask(void *pvParameters) {
         Serial.println("[IMU] Yaw calibrated!");
     #endif
     }
-    Serial.println("1");
     // wait for IMU interrupt
     BaseType_t notified = ulTaskNotifyTake(pdTRUE, pdMS_TO_TICKS(IMU_NOTIFY_TIMEOUT_MS));
 
     if (notified == 0) {
+      resetI2CBus();  
       // Timeout expired → IMU did not respond
       Serial.println("[IMU] Timeout! Reinitializing...");
+      AccGyr.Write_Reg(LSM6DSR_CTRL3_C, 0x01); // SW_RESET
+      delay(50); // wait for reset to complete
       reinitIMU();
       continue; // skip this iteration
     }
-    Serial.println("2");
     
     // ============ 1. READ IMU DATA ============
     AccGyr.Get_X_Axes(accel_raw);
@@ -167,13 +168,13 @@ void imuTask(void *pvParameters) {
 
     // get orientation
     data.position.roll = filter.getRoll();
-    data.position.pitch = filter.getPitch();
+    data.position.pitch = -filter.getPitch();
     
     float calibratedYaw = filter.getYaw() - yaw_offset;
     // wrap to [-180, 180]
     if (calibratedYaw > 180) calibratedYaw -= 360;
     if (calibratedYaw < -180) calibratedYaw += 360;
-    data.position.yaw = calibratedYaw;
+    data.position.yaw = -calibratedYaw;
 
     // ============ 5. COMPUTE RACKET VELOCITY ============
     computeRacketVelocity(q0, q1, q2, q3,

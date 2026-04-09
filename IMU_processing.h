@@ -20,3 +20,4 @@ void computeRacketVelocity(float q0, float q1, float q2, float q3,
                            IMU_Data *data);
 float getDT();
 void reinitIMU();
+void resetI2CBus();

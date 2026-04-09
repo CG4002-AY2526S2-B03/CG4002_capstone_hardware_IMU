@@ -3,13 +3,13 @@
 
 // ------------ CONSTANTS ------------
 const float accel_bias[3] = { 9.625, -14.477, 13.271 };   // from Magneto
-const float gyro_bias[3] = { 27.43, -170.24, -285.68 };  // from calibration code
+const float gyro_bias[3] = { 337.21, -694.25, -365.58 };  // from calibration code
 const float accel_correction[3][3] = {                    // A⁻¹ (correction matrix) from Magneto
   { 1.015291, 0.001008, 0.001879 },
   { 0.001008, 1.009009, 0.004430 },
   { 0.001879, 0.004430, 1.011325 }
 };
-const float imu_pos[3] = { 0.0, -0.10, 0.0 };  // IMU position relative to racket center (in m)
+const float imu_pos[3] = { 0.0, -0.15, 0.0 };  // IMU position relative to racket center (in m)
 #define DRIFT_DECAY 0.995                      // Dright decay (HPF) - reduces integration drift for velocity calculation
 
 // ============ QUATERNION ROTATION FUNCTIONS ============
@@ -34,9 +34,9 @@ void quatRotateConjugate(float qw, float qx, float qy, float qz,
   quatRotate(qw, -qx, -qy, -qz, vx, vy, vz, temp);
 
   // Copy to struct
-  data->velocity.x_vel = temp[0];
-  data->velocity.y_vel = temp[1];
-  data->velocity.z_vel = temp[2];
+  data->velocity.x_vel = temp[2];
+  data->velocity.y_vel = temp[0];
+  data->velocity.z_vel = temp[1];
 }
 // Accelerometer calibration function from Magneto
 void calibrateAccel(const float accel[3], float calib[3]) {
@@ -77,8 +77,18 @@ void computeRacketVelocity(float q0, float q1, float q2, float q3,
   float a_world[3];
   quatRotate(q0, q1, q2, q3, accel_ms2[0], accel_ms2[1], accel_ms2[2], a_world);
 
-  // Remove gravity in world frame
-  a_world[2] -= 9.81f;
+  float gravity_body[3];
+  // Rotate world gravity into body frame using conjugate
+  quatRotate(q0, -q1, -q2, -q3, 0.0f, 0.0f, 9.81f, gravity_body);
+  // Subtract in body frame before rotation
+  float accel_corrected[3] = {
+      accel_ms2[0] - gravity_body[0],
+      accel_ms2[1] - gravity_body[1],
+      accel_ms2[2] - gravity_body[2]
+  };
+  quatRotate(q0, q1, q2, q3, 
+            accel_corrected[0], accel_corrected[1], accel_corrected[2], 
+            a_world);
 
   // --- Step 4: Integrate to get world velocity with drift decay ---
   v_world[0] = v_world[0] * DRIFT_DECAY + a_world[0] * dt;
@@ -86,12 +96,12 @@ void computeRacketVelocity(float q0, float q1, float q2, float q3,
   v_world[2] = v_world[2] * DRIFT_DECAY + a_world[2] * dt;
 
   // Zero velocity detection
-  // float accel_mag = sqrtf(accel[0] * accel[0] + accel[1] * accel[1] + accel[2] * accel[2]);
-  // if (fabs(accel_mag - 1.0f) < 0.05f) {  // Within 0.05g of 1g = stationary
-  //   v_world[0] *= 0.5f;
-  //   v_world[1] *= 0.5f;
-  //   v_world[2] *= 0.5f;
-  // }
+  float accel_mag = sqrtf(accel[0] * accel[0] + accel[1] * accel[1] + accel[2] * accel[2]);
+  if (fabs(accel_mag - 1.0f) < 0.04f) {  // Within 0.04g of 1g = stationary
+    v_world[0] *= 0.5f;
+    v_world[1] *= 0.5f;
+    v_world[2] *= 0.5f;
+  }
 
   // --- Step 5: Lever arm effect (body frame) ---
   // v_rot = ω × r (using rad/s)
@@ -129,4 +139,32 @@ void reinitIMU() {
   }
   AccGyr.Enable_X();
   AccGyr.Enable_G();
+}
+
+void resetI2CBus() {
+  pinMode(SDA, OUTPUT_OPEN_DRAIN);
+  pinMode(SCL, OUTPUT_OPEN_DRAIN);
+
+  digitalWrite(SDA, HIGH);
+  digitalWrite(SCL, HIGH);
+  delayMicroseconds(5);
+
+  // Clock out 9 pulses to release stuck slave
+  for (int i = 0; i < 9; i++) {
+    digitalWrite(SCL, LOW);
+    delayMicroseconds(5);
+    digitalWrite(SCL, HIGH);
+    delayMicroseconds(5);
+  }
+
+  // Generate STOP condition
+  digitalWrite(SDA, LOW);
+  delayMicroseconds(5);
+  digitalWrite(SCL, HIGH);
+  delayMicroseconds(5);
+  digitalWrite(SDA, HIGH);
+
+  // Restore I2C
+  Wire.begin();
+  Wire.setClock(400000);
 }

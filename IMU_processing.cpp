@@ -77,18 +77,8 @@ void computeRacketVelocity(float q0, float q1, float q2, float q3,
   float a_world[3];
   quatRotate(q0, q1, q2, q3, accel_ms2[0], accel_ms2[1], accel_ms2[2], a_world);
 
-  float gravity_body[3];
-  // Rotate world gravity into body frame using conjugate
-  quatRotate(q0, -q1, -q2, -q3, 0.0f, 0.0f, 9.81f, gravity_body);
-  // Subtract in body frame before rotation
-  float accel_corrected[3] = {
-      accel_ms2[0] - gravity_body[0],
-      accel_ms2[1] - gravity_body[1],
-      accel_ms2[2] - gravity_body[2]
-  };
-  quatRotate(q0, q1, q2, q3, 
-            accel_corrected[0], accel_corrected[1], accel_corrected[2], 
-            a_world);
+  // Remove gravity in world frame
+  a_world[2] -= 9.81f;
 
   // --- Step 4: Integrate to get world velocity with drift decay ---
   v_world[0] = v_world[0] * DRIFT_DECAY + a_world[0] * dt;

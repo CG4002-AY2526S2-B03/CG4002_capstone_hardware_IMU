@@ -192,6 +192,9 @@ void setup() {
   Serial.begin(115200);
   SerialPort.println("Setup started...");
 
+  pinMode(NMOS_GATE_PIN, OUTPUT);
+  digitalWrite(NMOS_GATE_PIN, LOW);
+
   Wire.begin();
   Wire.setClock(400000);  // 400kHz
 
@@ -231,9 +234,6 @@ void setup() {
   for (int i = 0; i < 4; i++) {
     pinMode(buttonPins[i], INPUT_PULLUP);
   }
-
-  pinMode(NMOS_GATE_PIN, OUTPUT);
-  digitalWrite(NMOS_GATE_PIN, LOW);
 
   attachInterrupt(buttonPins[0], handleButton0, FALLING);
   attachInterrupt(buttonPins[1], handleButton1, FALLING);
